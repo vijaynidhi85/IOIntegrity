@@ -1,0 +1,12 @@
+{
+  "io_mode": "write",
+  "io_patterns": ["0x0123456789aaaaaa"],
+  "io_write_step": 4,
+  "iteration_sleep": "5"
+//
+//
+//  io_file: "/mnt/data/file1"
+//  iteration_sleep: 30
+//  io_file_size: 10Gi
+//  io_fill_percent: 80
+}
