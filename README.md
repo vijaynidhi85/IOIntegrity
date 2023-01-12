@@ -1,5 +1,5 @@
 # IOIntegrity
-Python docker container that can be used to perform IO tests. Uses FIO as backend tool.
+Python docker container that can be used to perform IO tests using FIO
 
 # About the App
 
