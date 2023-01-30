@@ -82,25 +82,41 @@ def fio_init():
 
     else:
       raise Exception(
-        "CRITICAL: WAL file found but no last_written_pattern - check "
+          "CRITICAL: WAL file found but no last_written_pattern - check "
         "previous container logs to find out why")
     # performing verify irrepsective of re-write based on WAL or not
 
-  elif exists("/mnt/data/last_written_pattern"):
+
+  print("WAL does not exist. Assuming pod did not crash mid-way of a write op")
+
+  print("Checking if last_written_pattern exists. If WAL is not present and "
+        "last write pattern exists - we assume the last run was a read verify and we are going to re-run the verify op")
+  if exists("/mnt/data/last_written_pattern"):
     run_fio_verify(io_config)
 
-  elif exists(io_config.io_file):
+  print("last written pattern file does not exist. Meaning both WAL and last "
+        "written pattern does not exist")
+
+  print("Checking if data file is found. If WAL and/or last written pattern "
+        "does not exist but the data file is present - we assume something "
+        "wrong as happened and crash")
+  if exists(io_config.io_file):
     raise Exception(
       "CRITICAL: last_written_pattern not found but data file found- check "
       "previous container logs to find out why.")
-  else:
-    print("No last_written_pattern, WAL or data file found. Assuming this is "
+
+
+  print("No last_written_pattern, WAL or data file found. Assuming this is "
           "the first run. moving to the loop writes")
 
 
 def fio_loop():
+  print("-" * 10)
+  print("BEGINNING the fio integrity loop")
+  print("-" * 10)
   i = 0
   while True:
+
     io_config = load_config()
     print("-" * 10)
     print("Iteration: {}".format(i))
@@ -108,16 +124,25 @@ def fio_loop():
     if io_config.io_mode == "write":
       print("Write Mode is enabled. Checking if it is the write iteration")
       if not (i % io_config.io_write_step):
+        print("Write Mode is enabled and it is the write iteration. "
+              "Performing write op")
+
+
         current_pattern_index = (i % len(io_config.io_patterns)) - 1  # loop
         current_pattern = io_config.io_patterns[current_pattern_index]
         run_fio_write(current_pattern, io_config=io_config)
 
         i += 1
         continue
+      print("Write Mode enabled and it is NOT the write iteration. Performing verify op")
+
 
     i += 1
+    print("Performing Verify Op")
     run_fio_verify(io_config)
-    time.sleep(io_config.iteration_sleep)
+    print("verify complete")
+    print("sleeping %s seconds".format(io_config.iteration_sleep))
+    time.sleep(int(io_config.iteration_sleep))
 
 
 def run_fio_write(current_pattern: str, io_config: IOConfig):
@@ -202,7 +227,10 @@ def run_fio_verify(io_config: IOConfig):
 
 
 if __name__ == '__main__':
+
   if os.environ.get("INIT", None):
+    print("ENV variable INIT detected - running init  process")
     fio_init()
   else:
+    print("ENV variable INIT  not detected - running main loop  process")
     fio_loop()
