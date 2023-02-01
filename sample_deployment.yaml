@@ -15,7 +15,20 @@ metadata:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fio-pvc-1
+  name: fio-pvc-1-data
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fio-pvc-1-log
   namespace: default
 spec:
   accessModes:
@@ -35,21 +48,6 @@ spec:
       labels:
         name: fio-1
     spec:
-      initContainers:
-      - name: fio-init
-        image: quay.io/vijaynidhi85/fio-integrity
-        resources:
-          requests:
-            cpu: 100m
-            memory: 40Mi
-        volumeMounts:
-        - mountPath: /mnt/data
-          name: fio-data
-        - mountPath: /mnt/config
-          name: fio-config
-        env:
-          - name: INIT
-            value: "True"
       containers:
       - name: fio-main
         image: quay.io/vijaynidhi85/fio-integrity
@@ -62,13 +60,18 @@ spec:
           name: fio-data
         - mountPath: /mnt/config
           name: fio-config
+        - mountPath: /mnt/trn
+          name: fio-trn
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
       volumes:
       - name: fio-data
         persistentVolumeClaim:
-          claimName: fio-pvc-1
+          claimName: fio-pvc-1-data
+      - name: fio-trn
+        persistentVolumeClaim:
+          claimName: fio-pvc-1-log
       - name: fio-config
         configMap:
          name: fio-cm
