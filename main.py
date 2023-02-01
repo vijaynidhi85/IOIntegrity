@@ -22,6 +22,8 @@ IO_FILE_NAME = "file1"
 IO_WRITE_STEP = 2
 ITERATION_SLEEP = 1
 IO_FILE_SIZE = "5Gi"
+IO_CRASH_ON_WAL_DETECTION = False
+
 
 
 
@@ -40,7 +42,7 @@ class IOConfig:
   io_file_path: str = field(init=False)
   io_wal_file_path: str = field(init=False)
   io_last_written_pattern: str = field(init=False)
-  io_crash_on_wal_detection: bool = False
+  io_crash_on_wal_detection: bool = IO_CRASH_ON_WAL_DETECTION
 
   def __post_init__(self):
     self.io_file_path = os.path.join(self.io_data_path, self.io_file_name)
@@ -95,6 +97,7 @@ def load_config():
 
   iteration_sleep = config.get("iteration_sleep", ITERATION_SLEEP)
   io_file_size = config.get("io_file_size", IO_FILE_SIZE)
+  io_crash_on_wal_detection = config.get("io_crash_on_wal_detection", IO_CRASH_ON_WAL_DETECTION)
 
   io_config = IOConfig(io_mode=io_mode,
                        io_patterns=io_patterns,

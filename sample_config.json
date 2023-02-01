@@ -12,4 +12,5 @@
 //  iteration_sleep: 30
 //  io_file_size: 10Gi
 //  io_fill_percent: 80
+// io_crash_on_wal_detection: false
 
