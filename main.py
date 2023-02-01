@@ -125,7 +125,7 @@ def fio_init():
 
     if exists(io_config.io_last_written_pattern):
 
-      log_message.info("last_written_pattern file exists")
+      log_message("last_written_pattern file exists")
       with open(io_config.io_last_written_pattern, "r") as \
         last_written_pattern_file:
         last_written_pattern = last_written_pattern_file.read()
@@ -328,6 +328,7 @@ def run_fio_verify(io_config: IOConfig):
                 level=LOG_LEVEL_TYPE.critical)
     log_message(inst.args, logger_type=LOGGER_TYPE.transaction_log,
                 level=LOG_LEVEL_TYPE.critical)
+    raise E
 
 
 if __name__ == '__main__':
