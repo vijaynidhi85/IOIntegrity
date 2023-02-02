@@ -62,7 +62,7 @@ spec:
           name: fio-config
         - mountPath: /mnt/trn
           name: fio-trn
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         securityContext:
           privileged: false
       volumes:
