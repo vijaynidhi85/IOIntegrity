@@ -331,7 +331,7 @@ def run_fio_verify(io_config: IOConfig):
                 level=LOG_LEVEL_TYPE.critical)
     log_message(inst.args, logger_type=LOGGER_TYPE.transaction_log,
                 level=LOG_LEVEL_TYPE.critical)
-    raise E
+    raise Exception("FIO verify failed!")
 
 
 if __name__ == '__main__':
