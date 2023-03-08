@@ -21,7 +21,7 @@ IO_DATA_PATH = os.environ.get("IO_DATA_PATH", "/mnt/data")
 IO_FILE_NAME = "file1"
 IO_WRITE_STEP = 2
 ITERATION_SLEEP = 1
-IO_FILE_SIZE = "5Gi"
+IO_FILE_SIZE = "4Gi"
 IO_CRASH_ON_WAL_DETECTION = False
 
 
@@ -118,6 +118,7 @@ def fio_init():
   os_command_execute("ls -l {}".format(io_config.io_data_path))
 
   if exists(io_config.io_wal_file_path):
+    log_message("wal file exists: {}".format(io_config.io_wal_file_path))
     if io_config.io_crash_on_wal_detection:
       log_message(
         "io_crash_on_wal_detection is set to TRUE and WAL file detected - "
@@ -126,39 +127,17 @@ def fio_init():
         "CRITICAL: WAL file found on init and flag io_crash_on_wal_detection "
         "set to true ")
 
-    if exists(io_config.io_last_written_pattern):
-
-      log_message("last_written_pattern file exists")
-      with open(io_config.io_last_written_pattern, "r") as \
-        last_written_pattern_file:
-        last_written_pattern = last_written_pattern_file.read()
-        last_written_pattern_file.close()
+    log_message("replaying wal write again")
+    with open(io_config.io_wal_file_path, "r") as wal_file:
+      wal_pattern = wal_file.read()
       log_message("WARNING: WAL file found - assuming previous pod "
-                          "crashed midway "
-                          "and flag io_crash_on_wal_detection set to false."
-                          "Re-writing with last_written_pattern: {}".format(
-        last_written_pattern),level=LOG_LEVEL_TYPE.error)
-      io_config = load_config()
-      log_message(
-        "Rerunning the io pattern as pod crashed with WAL "
-        "entry",level=LOG_LEVEL_TYPE.error)
-      run_fio_write(last_written_pattern, io_config)
+                          "crashed midway and flag io_crash_on_wal_detection set to false."
+                          "Re-writing with wal pattern: {}".format(
+        wal_pattern),level=LOG_LEVEL_TYPE.error)
+      run_fio_write(wal_pattern, io_config)
       return True
 
-    else:
-      raise Exception(
-        "CRITICAL: WAL file found but no last_written_pattern - check "
-        "previous container logs to find out why")
-
-    # performing verify irrepsective of re-write based on WAL or not
-
-  log_message("WAL does not exist. Assuming pod did not crash mid-way of a "
-               "write op")
-
-  log_message("Checking if last_written_pattern exists. If WAL is not "
-               "present and "
-        "last write pattern exists - we assume the last run was a read verify and we are going to re-run the verify op")
-  if exists(io_config.io_last_written_pattern):
+  if exists(io_config.io_last_written_patternio_last_written_pattern):
     log_message("last_written_pattern exists. verifying now")
     if (run_fio_verify(io_config)):
       log_message("verify complete - exiting the init stage")
@@ -166,8 +145,6 @@ def fio_init():
     else:
       raise Exception("CRITICAL: Verify Error")
 
-  log_message("last written pattern file does not exist. Meaning both WAL and last "
-        "written pattern does not exist")
 
   log_message("Checking if data file is found. If WAL and/or last written pattern "
         "does not exist but the data file is present - we assume something "
